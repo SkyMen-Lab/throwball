@@ -14,7 +14,6 @@ namespace ThrowBall
 
         //try to minimize new memory allocations during runtime
         [ThreadStatic] static byte[] header = new byte[4];
-        [ThreadStatic] static byte[] body;
         [ThreadStatic] static byte[] packet;
 
         protected ConcurrentQueue<Packet> InQueue;
@@ -59,6 +58,7 @@ namespace ThrowBall
             {
                 inQueue.Enqueue(new Packet(id, Meta.Connect, null));
 
+                byte[] body;
                 while (true)
                 {
                     if (!stream.CanRead) break;
@@ -76,6 +76,58 @@ namespace ThrowBall
                 stream.Close();
                 tcpClient.Close();
                 inQueue.Enqueue(new Packet(id, Meta.Disconnect, null));
+            }
+        }
+
+        private bool SendStream(NetworkStream stream, byte[] data)
+        {
+            try
+            {
+                if (!stream.CanWrite) return false;
+                int size = data.Length;
+
+                header = BitConverter.GetBytes(size);
+                Array.Copy(header, packet, header.Length);
+                Array.Copy(data, 0, packet, size, size);
+
+                stream.Write(packet, 0, packet.Length);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        protected void SendInternal(Guid id, TcpClient tcpClient, ConcurrentQueue<byte[]> outQueue, ManualResetEvent sync)
+        {
+            var stream = tcpClient.GetStream();
+            try
+            {
+                while (tcpClient.Connected)
+                {
+
+                    //wait until .Send() is called
+                    sync.WaitOne();
+
+                    byte[] body;
+                    while (outQueue.TryDequeue(out body))
+                    {
+                        SendStream(stream, body);
+                    }
+
+                    sync.Reset();
+                }
+            }
+            catch (Exception e)
+            {
+                //TODO: logging
+            }
+            finally
+            {
+                tcpClient.Close();
+                stream.Close();
             }
         }
 
