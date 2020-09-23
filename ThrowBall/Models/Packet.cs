@@ -1,14 +1,17 @@
+using System;
 using Newtonsoft.Json;
 
 namespace ThrowBall.Models
 {
     public class Packet
     {
+        public Guid Id { get; set; }
         public Meta MetaData { get; set; }
         public byte[] Message { get; set; }
 
-        public Packet(Meta meta, byte[] message)
+        public Packet(Guid id, Meta meta, byte[] message)
         {
+            Id = id;
             Message = message;
             MetaData = meta;
         }
