@@ -1,23 +1,20 @@
 using System;
 using ThrowBall.Models;
 using System.Threading.Tasks;
-using ThrowBall.Transports;
+using ThrowBall.TCP;
 
 namespace ThrowBall {
-    public class ThrowServer {
-        private ITransport _transport;
-
-
-        public delegate void OnStart();
-        public event OnStart OnStartEvent;
-
-        public void SetupTransport<T>(T transport) where T : ITransport {
-            _transport = transport;
+    public class ThrowServer
+    {
+        public static Server CreateServer(int maxNumberOfClients = 1000)
+        {
+            return new Server(maxNumberOfClients);
         }
 
-        // public Task<bool> StartServer() {
-            
-        // }
-
+        public static Client CreateClient()
+        {
+            return new Client();
+        }
+        
     }
 }
