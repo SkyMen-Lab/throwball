@@ -1,7 +1,11 @@
+using System;
 using Newtonsoft.Json;
 
 namespace ThrowBall.Models
 {
+    /// <summary>
+    /// thep0ng.io specific message model which is contained within Packet
+    /// </summary>
     public class Message
     {
         public GameEvent ContentType { get; set; }
@@ -22,8 +26,14 @@ namespace ThrowBall.Models
         {
             return JsonConvert.DeserializeObject<Message>(message);
         }
+
+        public static string JsonFromBytes(byte[] load)
+        {
+            return BitConverter.ToString(load);
+        }
     }
-    
+
+    ///Contextual labels for game messages    
     public enum GameEvent
     {
         StartGame,
