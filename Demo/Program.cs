@@ -36,7 +36,7 @@ namespace Demo
                     case 1:
                         ProcessUpdates(_server, 100);
                        // _server.SendMessage(Guid.Empty, Encoding.ASCII.GetBytes(message));
-                        Console.ReadLine();
+                        //Console.ReadLine();
                         break;
                     case 2:
                         ProcessUpdates(_client, 100);
