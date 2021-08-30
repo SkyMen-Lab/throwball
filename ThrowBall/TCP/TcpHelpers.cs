@@ -19,7 +19,12 @@ namespace ThrowBall.TCP
                     {
                         //read first 4 bytes of the array
                         byte[] sizeBuffer = new byte[4];
-                        stream.Read(sizeBuffer, 0, 4);
+                        int read = stream.Read(sizeBuffer, 0, 4);
+
+                        //TODO: wrap into a separate function
+                        if (read == 0) {
+                            break;
+                        }
 
                         int size = Coder.BigEndianSizeShift(sizeBuffer);
 
@@ -33,10 +38,11 @@ namespace ThrowBall.TCP
                         int bytesRead = 0;
                         while (bytesRead < size)
                         {
-                            bytesRead += stream.Read(load, 0, (size - bytesRead));
+                        //TODO: wrap into a separate function
+                        bytesRead += stream.Read(load, 0, (size - bytesRead));
                             if (bytesRead == 0)
                             {
-                                break;
+                                connection.IsOpen = false;
                             }
                         }
 

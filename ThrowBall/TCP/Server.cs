@@ -63,6 +63,9 @@ namespace ThrowBall.TCP
                     while (true)
                     {
                         TcpClient client = _tcpL.AcceptTcpClient();
+                        client.NoDelay = true;
+                        client.SendTimeout = 5000;
+                        client.ReceiveTimeout = 0;
                         Interlocked.Increment(ref _currentNumberOfClient);
                         var connection = new Connection()
                         {
