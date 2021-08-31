@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
 using ThrowBall.Models;
+using ThrowBall.Logger;
 
 namespace ThrowBall.TCP
 {
@@ -53,9 +54,10 @@ namespace ThrowBall.TCP
                     IsBackground = true
                 };
                 receiveThread.Start();
-
+                Log.Info("New client has been connected");
                 return true;
             }
+            Log.Warning("Error connecting new client");
             return false;
         }
 
@@ -64,13 +66,15 @@ namespace ThrowBall.TCP
             int size = load.Length;
             if (size > maxMessageSize)
             {
-                //TODO: log
+                Log.Warning("Attempt to send message of greater than allowed size");
                 return false;
             }
 
             Packet packet = new Packet(Guid.Empty, Meta.Message, load);
             
             _connection.PendingQueue.Enqueue(packet);
+
+            Log.Info("Message has successfully been queued");
 
             return true;
         }

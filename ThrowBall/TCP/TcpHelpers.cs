@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
@@ -19,31 +20,19 @@ namespace ThrowBall.TCP
                     {
                         //read first 4 bytes of the array
                         byte[] sizeBuffer = new byte[4];
-                        int read = stream.Read(sizeBuffer, 0, 4);
-
-                        //TODO: wrap into a separate function
-                        if (read == 0) {
+                        if (!GetStreamBytesSafely(stream, sizeBuffer, 0, 4, ReadBlocking)) {
                             break;
                         }
 
                         int size = Coder.BigEndianSizeShift(sizeBuffer);
-
                         if (size <= 0 && size > maxSize)
                         {
                             break;
                         }
 
                         byte[] load = new byte[size + 4];
-
-                        int bytesRead = 0;
-                        while (bytesRead < size)
-                        {
-                        //TODO: wrap into a separate function
-                        bytesRead += stream.Read(load, 0, (size - bytesRead));
-                            if (bytesRead == 0)
-                            {
-                                connection.IsOpen = false;
-                            }
+                        if (!GetStreamBytesSafely(stream, load, 0, size, ReadContiniously)) {
+                            break;
                         }
 
                         var packet = new Packet(connection.Id, Meta.Message, load);
@@ -103,6 +92,40 @@ namespace ThrowBall.TCP
             {
                 //ignored
             }
+        }
+
+
+        //the wrapper function for reading stream whatever way we want
+        private static bool GetStreamBytesSafely(NetworkStream stream, byte[] load, int offset, int size, Func<NetworkStream, byte[], int, int, bool> streamFunc) {
+            try {
+                return streamFunc(stream, load, offset, size);
+            } catch (SocketException se) {
+                return false;
+            } catch (IOException ioe) {
+                return false;
+            }
+        }
+
+        private static bool ReadBlocking(NetworkStream stream, byte[] load, int offset, int size) {
+            int read = stream.Read(load, offset, size);
+            if (read == 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
+
+        //We read contiously to ensure that we don't catch a junk bytes from feed
+        private static bool ReadContiniously(NetworkStream stream, byte[] load, int offset, int size) {
+            int bytesRead = 0;
+            while (bytesRead < size) {
+                var b = stream.ReadByte();
+                if (b == -1) return false;
+                load[offset + bytesRead] = (byte) b;
+                bytesRead++;
+            }
+            return true;
         }
     }
 }
