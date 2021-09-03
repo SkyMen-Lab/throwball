@@ -116,7 +116,7 @@ namespace ThrowBall.TCP
                 }
                 
                 connection.PendingQueue.Enqueue(new Packet(id, Meta.Message, load));
-
+                connection.SendManualReset.Set();
                 return true;
             }
 
@@ -126,18 +126,15 @@ namespace ThrowBall.TCP
         
         public bool DisconnectClient(Guid id)
         {
-            _clients.TryPeek(out Connection connection);
+            _clients.TryTake(out Connection connection);
             if (connection != null)
             {
-                connection.IsOpen = false;
+                //TODO: send pending messages to the client
+                //connection.Client.Close();
+                connection.SetConnectionStatus(false);
                 return true;
             }
             return false;
-        }
-
-        private void SendUpdates()
-        {
-            //TODO: write logic to send pending messages from the queue
         }
         
         public override bool ProcessNextMessage()

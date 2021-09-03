@@ -17,6 +17,13 @@ namespace ThrowBall.TCP
         private Connection _connection;
 
         private Thread _sendThread;
+
+        public bool IsConnected { get  {
+            if (_connection == null) {
+                return false;
+            }
+            return _connection.IsOpen && _connection.Client.Connected;
+        } } 
         
 
         public Client()
@@ -63,6 +70,10 @@ namespace ThrowBall.TCP
 
         public bool SendMessage(byte[] load)
         {
+            //TODO: check whether stream is writable
+            if (!_connection.IsOpen) {
+                return false;
+            }
             int size = load.Length;
             if (size > maxMessageSize)
             {
@@ -73,7 +84,7 @@ namespace ThrowBall.TCP
             Packet packet = new Packet(Guid.Empty, Meta.Message, load);
             
             _connection.PendingQueue.Enqueue(packet);
-
+            _connection.SendManualReset.Set();
             Log.Info("Message has successfully been queued");
 
             return true;
@@ -81,7 +92,7 @@ namespace ThrowBall.TCP
 
         public void Disconnect()
         {
-            _connection.IsOpen = false;
+            _connection.SetConnectionStatus(false);
             Packet packet = new Packet(Guid.Empty, Meta.Disconnect, default);
             _connection.PendingQueue.Enqueue(packet);
         }

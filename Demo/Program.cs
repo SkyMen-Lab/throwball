@@ -49,7 +49,7 @@ namespace Demo
                         string message;
                         if (!_client.IsConnected)
                         {
-                            Console.WriteLine("You are not connected. connect or quit?");
+                            Console.WriteLine("connect or quit?");
                             message = Console.ReadLine();
                             if (message == "connect")
                             {
@@ -71,6 +71,9 @@ namespace Demo
                             if (!s)
                             {
                                 Console.WriteLine("You are disconnected");
+                            }
+                            if (message == "disconnect") {
+                            _client.Disconnect();
                             }
                         }
                         break;

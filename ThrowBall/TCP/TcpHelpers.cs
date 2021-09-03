@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
 using ThrowBall.Models;
+using ThrowBall.Logger;
 
 namespace ThrowBall.TCP
 {
@@ -16,11 +17,27 @@ namespace ThrowBall.TCP
                 try
                 {
                     incomingPackets.Enqueue(new Packet(connection.Id, Meta.Connect, default));
-                    while (stream.CanRead && connection.IsOpen)
+                    while (stream.CanRead)
                     {
+
+                        //check if we are willing to close connection
+                        //useful to distinguish between willingly closed connection
+                        //and broken one
+                        if (!connection.IsOpen) {
+                            Log.Warning("Connection has been closed!");
+                            break;
+                        }
+
+                        //stream.Read() is blocking
+                        //therefore we check the stream for data
+                        if (!stream.DataAvailable) {
+                            continue;
+                        }
+
                         //read first 4 bytes of the array
                         byte[] sizeBuffer = new byte[4];
                         if (!GetStreamBytesSafely(stream, sizeBuffer, 0, 4, ReadBlocking)) {
+                            Log.Warning("Error reading bytes from stream 1");
                             break;
                         }
 
@@ -32,15 +49,14 @@ namespace ThrowBall.TCP
 
                         byte[] load = new byte[size + 4];
                         if (!GetStreamBytesSafely(stream, load, 0, size, ReadContiniously)) {
+                            Log.Warning("Error reading bytes from stream 2");
                             break;
                         }
 
                         var packet = new Packet(connection.Id, Meta.Message, load);
                         
                         incomingPackets.Enqueue(packet);
-
                     }
-
                     var disconnectPacket = new Packet(connection.Id, Meta.Disconnect, default);
                     incomingPackets.Enqueue(disconnectPacket);
                 }
@@ -50,6 +66,7 @@ namespace ThrowBall.TCP
                 }
                 finally
                 {
+                    Log.Info("Closing stream and client");
                     stream.Close();
                     client.Close();
                 }
@@ -66,8 +83,14 @@ namespace ThrowBall.TCP
             
             try
             {
-                while (connection.IsOpen)
+                while (connection.IsOpen && stream.CanWrite)
                 {
+                    connection.SendManualReset.Reset();
+                    if (!stream.CanWrite) {
+                        connection.SetConnectionStatus(false);
+                        Log.Info("changing status of a connection to false");
+                        break;
+                    }
                     bool success = packetsPending.TryDequeue(out packet);
                     if (!success)
                     {
@@ -78,7 +101,9 @@ namespace ThrowBall.TCP
                     Buffer.BlockCopy(packet.Message, 0, load, 4, packet.Message.Length);
                     
                     stream.Write(load, 0, load.Length);
+                    connection.SendManualReset.WaitOne();
                 }
+                Log.Info("Connection has been closed!");
             }
             catch (SocketException socketException)
             {
@@ -88,9 +113,17 @@ namespace ThrowBall.TCP
             {
 
             }
+            catch (IOException io) {
+                Log.Error("Connection has been closed", io);
+            }
             catch (Exception e)
             {
                 //ignored
+            }
+            finally {
+                Log.Info("Disposing stream and client");
+                stream.Close();
+                connection.Client.Close();
             }
         }
 

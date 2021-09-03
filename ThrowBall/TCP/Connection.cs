@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -9,6 +10,8 @@ namespace ThrowBall.TCP
     public class Connection
     {
         private readonly object _statusLock = new();
+
+        public ManualResetEvent SendManualReset = new ManualResetEvent(false);
         
         public Guid Id { get; set; }
         
@@ -17,10 +20,10 @@ namespace ThrowBall.TCP
         
         public ConcurrentQueue<Packet> PendingQueue { get; set; }
 
-        public void SetConnectionStatus(bool isOpen)
+        public void SetConnectionStatus(bool status)
         {
             lock(_statusLock) {
-                IsOpen = isOpen;
+                IsOpen = status;
             }
         }
     }
