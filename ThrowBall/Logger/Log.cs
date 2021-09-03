@@ -20,29 +20,32 @@ namespace ThrowBall.Logger
         }
 
         public static void Info(string info, [CallerMemberName] string caller = null) {
-            if (!IsSetup) {
-                throw new Exception("Logger has not been setup!");
-            }
-            string callerInfo = caller == null ? "" : $" - Point of message is {caller}";
+            // if (!IsSetup) {
+            //     throw new Exception("Logger has not been setup!");
+            // }
+            string callerInfo = caller == null ? "" : $" - Point of message is <{caller}>";
             string message = $"INFO: {DateTime.Now.Date} - {DateTime.Now.TimeOfDay} {info}" + callerInfo;
+            OnInfoLog?.Invoke(message);
         }
 
         public static void Warning(string info, [CallerMemberName] string caller = null) {
-            if (!IsSetup)
-            {
-                throw new Exception("Logger has not been setup");
-            }
-            string callerInfo = caller == null ? "" : $" - Point of message is {caller}";
-            string message = $"Warning: {DateTime.Now.Date} - {DateTime.Now.TimeOfDay} {info}" + callerInfo;
+            // if (!IsSetup)
+            // {
+            //     throw new Exception("Logger has not been setup");
+            // }
+            string callerInfo = caller == null ? "" : $" - Point of message is <{caller}>";
+            string message = $"Warning: {DateTime.Now.Day} - {DateTime.Now.TimeOfDay} {info}" + callerInfo;
+            OnWarningLog?.Invoke(message);
         }
 
         public static void Error(string info, Exception e)
         {
-            if (!IsSetup)
-            {
-                throw new Exception("Logger has not been setup");
-            }
+            // if (!IsSetup)
+            // {
+            //     throw new Exception("Logger has not been setup");
+            // }
             string message = $"Error: {DateTime.Now.Date} - {DateTime.Now.TimeOfDay} {info}\n" + e.Message;
+            OnErrorLog?.Invoke(message, e);
         }
 
     }
