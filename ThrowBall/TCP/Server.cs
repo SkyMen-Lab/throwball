@@ -130,7 +130,6 @@ namespace ThrowBall.TCP
             if (connection != null)
             {
                 //TODO: send pending messages to the client
-                //connection.Client.Close();
                 connection.SetConnectionStatus(false);
                 return true;
             }
