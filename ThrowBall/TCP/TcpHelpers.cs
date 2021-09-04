@@ -30,14 +30,14 @@ namespace ThrowBall.TCP
 
                         //stream.Read() is blocking
                         //therefore we check the stream for data
-                        if (!stream.DataAvailable) {
-                            continue;
-                        }
+                        // if (!stream.DataAvailable) {
+                        //     continue;
+                        // }
 
                         //read first 4 bytes of the array
                         byte[] sizeBuffer = new byte[4];
                         if (!GetStreamBytesSafely(stream, sizeBuffer, 0, 4, ReadBlocking)) {
-                            Log.Warning("Error reading bytes from stream 1");
+                            Log.Warning("Error reading bytes from stream. Closing connection!");
                             break;
                         }
 
@@ -49,7 +49,7 @@ namespace ThrowBall.TCP
 
                         byte[] load = new byte[size + 4];
                         if (!GetStreamBytesSafely(stream, load, 0, size, ReadContiniously)) {
-                            Log.Warning("Error reading bytes from stream 2");
+                            Log.Warning("Error reading bytes from stream. Closing connection!");
                             break;
                         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
@@ -25,6 +26,7 @@ namespace ThrowBall.TCP
             return _connection.IsOpen && _connection.Client.Connected;
         } } 
         
+        public bool IsPinging { get; set; } = true;
 
         public Client()
         {
@@ -61,11 +63,31 @@ namespace ThrowBall.TCP
                     IsBackground = true
                 };
                 receiveThread.Start();
+
+                Thread pingThread = new Thread(Ping);
+                pingThread.Priority = ThreadPriority.Lowest;
+                pingThread.IsBackground = true;
+                pingThread.Start();
+
                 Log.Info("New client has been connected");
                 return true;
             }
             Log.Warning("Error connecting new client");
             return false;
+        }
+
+        private void Ping() {
+            if (IsConnected && IsPinging) {
+                while(true) {
+                    var load = ASCIIEncoding.ASCII.GetBytes("ping");
+                    if(!SendMessage(load)) {
+                        Log.Warning("Connection is broken!");
+                        _connection.SetConnectionStatus(false);
+                        break;
+                    }
+                    Thread.Sleep(5000);
+                }
+            }
         }
 
         public bool SendMessage(byte[] load)
@@ -90,6 +112,10 @@ namespace ThrowBall.TCP
             return true;
         }
 
+
+        //use this method to send a disconnect packet to the server
+        //receive pending messages from it
+        //and close connection
         public void Disconnect()
         {
             _connection.SetConnectionStatus(false);

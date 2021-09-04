@@ -88,6 +88,7 @@ namespace Demo
         public static void CreateClient()
         {
             _client = ThrowServer.CreateClient();
+            _client.IsPinging = false;
             _client.Connect("127.0.0.1", 5000);
             _client.OnConnected = () => Console.WriteLine("Connected to server from client");
             _client.OnMessageReceived = (bytes =>
