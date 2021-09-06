@@ -5,10 +5,11 @@ using System.Net.Sockets;
 using System.Threading;
 using ThrowBall.Models;
 using ThrowBall.Logger;
+using ThrowBall;
 
 namespace ThrowBall.TCP
 {
-    public class Client : TcpBase
+    public class Client : ProtocolBase
     {
 
         public Action OnConnected;
@@ -35,7 +36,7 @@ namespace ThrowBall.TCP
                 Id = Guid.Empty,
                 IsOpen = true,
                 Client = new TcpClient(),
-                PendingQueue = new ConcurrentQueue<Packet>()
+                PendingQueue = new ConcurrentQueue<TcpPacket>()
             };
         }
 
@@ -46,7 +47,7 @@ namespace ThrowBall.TCP
 
             if (_connection.Client.Connected)
             {
-                incomingQueue = new ConcurrentQueue<Packet>();
+                incomingQueue = new ConcurrentQueue<TcpPacket>();
                 _sendThread = new Thread(() =>
                 {
                     TcpHelpers.SendTo(_connection);
@@ -103,7 +104,7 @@ namespace ThrowBall.TCP
                 return false;
             }
 
-            Packet packet = new Packet(Guid.Empty, Meta.Message, load);
+            TcpPacket packet = new TcpPacket(Guid.Empty, Meta.Message, load);
             
             _connection.PendingQueue.Enqueue(packet);
             _connection.SendManualReset.Set();
@@ -119,7 +120,7 @@ namespace ThrowBall.TCP
         public void Disconnect()
         {
             _connection.SetConnectionStatus(false);
-            Packet packet = new Packet(Guid.Empty, Meta.Disconnect, default);
+            TcpPacket packet = new TcpPacket(Guid.Empty, Meta.Disconnect, default);
             _connection.PendingQueue.Enqueue(packet);
         }
 
@@ -138,7 +139,7 @@ namespace ThrowBall.TCP
                 return false;
             }
 
-            var result = incomingQueue.TryDequeue(out Packet packet);
+            var result = incomingQueue.TryDequeue(out TcpPacket packet);
             if (!result) return false;
 
             switch (packet.MetaData)

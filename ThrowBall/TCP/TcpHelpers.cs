@@ -11,12 +11,12 @@ namespace ThrowBall.TCP
     public static class TcpHelpers
     {
         //test closing connection inside the thread with ConnectionState class
-        public static void ListenTo(Connection connection, int maxSize, ConcurrentQueue<Packet> incomingPackets) {
+        public static void ListenTo(Connection connection, int maxSize, ConcurrentQueue<TcpPacket> incomingPackets) {
             TcpClient client = connection.Client;
                 NetworkStream stream = client.GetStream();
                 try
                 {
-                    incomingPackets.Enqueue(new Packet(connection.Id, Meta.Connect, default));
+                    incomingPackets.Enqueue(new TcpPacket(connection.Id, Meta.Connect, default));
                     while (stream.CanRead)
                     {
 
@@ -53,11 +53,11 @@ namespace ThrowBall.TCP
                             break;
                         }
 
-                        var packet = new Packet(connection.Id, Meta.Message, load);
+                        var packet = new TcpPacket(connection.Id, Meta.Message, load);
                         
                         incomingPackets.Enqueue(packet);
                     }
-                    var disconnectPacket = new Packet(connection.Id, Meta.Disconnect, default);
+                    var disconnectPacket = new TcpPacket(connection.Id, Meta.Disconnect, default);
                     incomingPackets.Enqueue(disconnectPacket);
                 }
                 catch (Exception e)
@@ -79,7 +79,7 @@ namespace ThrowBall.TCP
             var packetsPending = connection.PendingQueue;
 
             byte[] load = default;
-            Packet packet;
+            TcpPacket packet;
             
             try
             {

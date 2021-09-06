@@ -121,7 +121,7 @@ namespace Demo
             _server.OnClientDisconnected = guid => Console.WriteLine($"Client disconnected - {guid}");
         }
 
-        public static void ProcessUpdates(TcpBase tcpBase, int count)
+        public static void ProcessUpdates(ProtocolBase tcpBase, int count)
         {
             for (int i = 0; i < count; i++)
             {

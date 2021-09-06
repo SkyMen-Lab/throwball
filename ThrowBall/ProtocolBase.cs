@@ -4,10 +4,12 @@ using System.Net.Sockets;
 using System.Collections.Concurrent;
 using ThrowBall.Models;
 
-namespace ThrowBall.TCP{
-    public abstract class TcpBase {
+namespace ThrowBall
+{
+    public abstract class ProtocolBase
+    {
 
-        protected ConcurrentQueue<Packet> incomingQueue;
+        protected ConcurrentQueue<TcpPacket> incomingQueue;
         protected int maxQueueSize = 5000;
         protected int maxMessageSize = 512;
         protected Thread receiveThread { get; set; }

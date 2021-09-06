@@ -10,7 +10,7 @@ using ThrowBall.Models;
 
 namespace ThrowBall.TCP
 {
-    public class Server : TcpBase
+    public class Server : ProtocolBase
     {
 
         private TcpListener _tcpL; //TcpListener
@@ -41,7 +41,7 @@ namespace ThrowBall.TCP
             {
                 _tcpL = new TcpListener(IPAddress.Any, port);
                 _tcpL.Start();
-                incomingQueue = new ConcurrentQueue<Packet>();
+                incomingQueue = new ConcurrentQueue<TcpPacket>();
                 receiveThread = new Thread(() => StartListening())
                 {
                     IsBackground = true,
@@ -71,7 +71,7 @@ namespace ThrowBall.TCP
                         {
                             Id = Guid.NewGuid(),
                             IsOpen = true,
-                            PendingQueue = new ConcurrentQueue<Packet>(),
+                            PendingQueue = new ConcurrentQueue<TcpPacket>(),
                             Client = client
                         };
                         _clients.Add(connection);
@@ -115,7 +115,7 @@ namespace ThrowBall.TCP
                     return false;
                 }
                 
-                connection.PendingQueue.Enqueue(new Packet(id, Meta.Message, load));
+                connection.PendingQueue.Enqueue(new TcpPacket(id, Meta.Message, load));
                 connection.SendManualReset.Set();
                 return true;
             }
@@ -138,7 +138,7 @@ namespace ThrowBall.TCP
         
         public override bool ProcessNextMessage()
         {
-            var result = incomingQueue.TryDequeue(out Packet packet);
+            var result = incomingQueue.TryDequeue(out TcpPacket packet);
             if (!result) return false;
 
             switch (packet.MetaData)

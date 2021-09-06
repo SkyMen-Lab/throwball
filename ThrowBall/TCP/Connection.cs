@@ -18,7 +18,7 @@ namespace ThrowBall.TCP
         public TcpClient Client { get; set; }
         public bool IsOpen { get; set; } = true;
         
-        public ConcurrentQueue<Packet> PendingQueue { get; set; }
+        public ConcurrentQueue<TcpPacket> PendingQueue { get; set; }
 
         public void SetConnectionStatus(bool status)
         {

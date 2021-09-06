@@ -3,13 +3,9 @@ using System.Text.Json;
 
 namespace ThrowBall.Models
 {
-    
-    /// <summary>
-    /// General implementation of all messages that are going between client and server
-    /// </summary>
-    public class Packet
+
+    public class BasePacket
     {
-        public Guid Id { get; set; }
         public Meta MetaData { get; set; }
         public byte[] Message { get; set; }
 
@@ -34,9 +30,8 @@ namespace ThrowBall.Models
             }
         }
 
-        public Packet(Guid id, Meta meta, byte[] message)
+        public BasePacket(Meta meta, byte[] message)
         {
-            Id = id;
             Message = message;
             MetaData = meta;
             if (message != default)
@@ -45,15 +40,9 @@ namespace ThrowBall.Models
             }
         }
 
-        public string ToJson()
-        {
-            return JsonSerializer.Serialize(this);
-        }
+        public BasePacket() { }
 
-        public static Packet FromJson(string message)
-        {
-            return JsonSerializer.Deserialize<Packet>(message);
-        } 
+
     }
 
     ///Meta label which would allow mark a message and help server to decide whether to decode the message or not

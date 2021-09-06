@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace ThrowBall.Models
@@ -29,7 +30,7 @@ namespace ThrowBall.Models
 
         public static string JsonFromBytes(byte[] load)
         {
-            return BitConverter.ToString(load);
+            return ASCIIEncoding.ASCII.GetString(load);
         }
     }
 
