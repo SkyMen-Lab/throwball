@@ -12,6 +12,7 @@ namespace ThrowBall
         protected ConcurrentQueue<TcpPacket> incomingQueue;
         protected int maxQueueSize = 5000;
         protected int maxMessageSize = 512;
+
         protected Thread receiveThread { get; set; }
 
         public abstract bool ProcessNextMessage();
